@@ -70,6 +70,7 @@ function* animateSquare(view, left, top, color) {
  *   - Example: using box = el(view, { width: "50px", backgroundColor: "red" })
  *
  * element.to(props, duration, easing) - Animates element properties
+ *   Props values must be numbers like: { left: 100, width: 20 } 
  *   - props: { left, top, width, height, rotate, opacity, etc. }
  *   - duration: number of frames
  *   - easing: 'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | custom function
