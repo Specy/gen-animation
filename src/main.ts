@@ -34,7 +34,8 @@ const show = view({
 show.mount(app);
 
 // Default example code
-const defaultCode = `// Animation helpers are available: all, el, ease, sequence, repeat, delay, loop. Look below for docs on each
+const defaultCode = `// Animation helpers are available: all, el, ease, sequence, repeat, delay, loop. 
+// Look below the code for docs, the animation function is the one that will be played.
 
 return function* animation(view) {
   yield* all(
