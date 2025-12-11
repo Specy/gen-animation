@@ -34,8 +34,7 @@ const show = view({
 show.mount(app);
 
 // Default example code
-const defaultCode = `
-// Animation helpers are available: all, el, ease, sequence, repeat, delay, loop
+const defaultCode = `// Animation helpers are available: all, el, ease, sequence, repeat, delay, loop. Look below for docs on each
 
 return function* animation(view) {
   yield* all(
@@ -81,7 +80,7 @@ function* animateSquare(view, left, top, color) {
  *
  * sequence(delayFrames, generators) - Runs animations with a staggered delay
  *   - Starts each animation after delayFrames
- *   - Example: yield* sequence(10, [anim1, anim2, anim3])
+ *   - Example: yield* sequence(10, [anim1, () => anim2(100), anim3])
  *
  * delay(frames) - Pauses the animation for a number of frames
  *   - Example: yield* delay(30)
