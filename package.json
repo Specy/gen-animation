@@ -1,0 +1,25 @@
+{
+  "name": "gen-canvas",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vite": "npm:rolldown-vite@7.2.5",
+    "vitest": "^1.6.0"
+  },
+  "overrides": {
+    "vite": "npm:rolldown-vite@7.2.5"
+  },
+  "dependencies": {
+    "csstype": "^3.2.3",
+    "html2canvas-pro": "^1.5.13",
+    "webm-muxer": "^5.1.4"
+  }
+}
