@@ -1,12 +1,27 @@
 import { view } from "./anim/view";
 import { record } from "./anim/record";
 import { playAnimation } from "./animation";
+import { EditorView, basicSetup } from "codemirror";
+import { javascript } from "@codemirror/lang-javascript";
+import { oneDark } from "@codemirror/theme-one-dark";
+import {
+  el,
+  ease,
+  delay,
+  repeat,
+  sequence,
+  all,
+  loop,
+} from "./anim/gen-animation";
 import "./style.css";
 
-const app = document.querySelector<HTMLDivElement>("#animation")!;
+const app = document.querySelector<HTMLDivElement>("#app")!;
 const playBtn = document.querySelector<HTMLButtonElement>("#playBtn")!;
 const recordBtn = document.querySelector<HTMLButtonElement>("#recordBtn")!;
 const downloadBtn = document.querySelector<HTMLButtonElement>("#downloadBtn")!;
+const editorContainer = document.querySelector<HTMLDivElement>("#editor")!;
+const videoElement =
+  document.querySelector<HTMLVideoElement>("#recordedVideo")!;
 
 const show = view({
   position: "relative",
@@ -18,12 +33,171 @@ const show = view({
 
 show.mount(app);
 
+// Default example code
+const defaultCode = `
+// Animation helpers are available: all, el, ease, sequence, repeat, delay, loop
+
+return function* animation(view) {
+  yield* all(
+    animateSquare(view, 50, 100, 'red'),
+    animateSquare(view, 150, 100, 'blue'),
+    animateSquare(view, 250, 100, 'green'),
+  );
+
+  yield* delay(20);
+  yield* loop(2, () => animateSquare(view, 150, 100, 'yellow'));
+}
+
+function* animateSquare(view, left, top, color) {
+  using square = el(view, {
+    width: "50px",
+    height: "50px",
+    backgroundColor: color,
+    position: "absolute",
+    left: \`\${left}px\`,
+    top: \`\${top}px\`,
+  });
+
+  yield* square.to({ left: left + 100, top, rotate: 180 }, 30, 'easeOut');
+  yield* square.to({ left, top, rotate: 360 }, 30, 'easeIn');
+}
+/*
+ * ANIMATION HELPERS DOCUMENTATION:
+ *
+ * el(view, style) - Creates an HTML element with the given style
+ *   - Returns a ViewElement with .to() method for animations
+ *   - Use 'using' keyword for automatic cleanup
+ *   - Example: using box = el(view, { width: "50px", backgroundColor: "red" })
+ *
+ * element.to(props, duration, easing) - Animates element properties
+ *   - props: { left, top, width, height, rotate, opacity, etc. }
+ *   - duration: number of frames
+ *   - easing: 'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | custom function
+ *   - Example: yield* box.to({ left: 100, rotate: 180 }, 60, 'easeOut')
+ *
+ * all(...generators) - Runs multiple animations in parallel
+ *   - Waits for all animations to complete
+ *   - Example: yield* all(anim1(), anim2(), anim3())
+ *
+ * sequence(delayFrames, generators) - Runs animations with a staggered delay
+ *   - Starts each animation after delayFrames
+ *   - Example: yield* sequence(10, [anim1, anim2, anim3])
+ *
+ * delay(frames) - Pauses the animation for a number of frames
+ *   - Example: yield* delay(30)
+ *
+ * repeat(times, generator) - Repeats an animation a specific number of times
+ *   - Example: yield* repeat(3, () => bounceAnimation())
+ *
+ * loop(times, generator) - Same as repeat (alias)
+ *   - Example: yield* loop(5, () => spinAnimation())
+ *
+ * ease(easingFunction) - Returns an easing function
+ *   - Built-in: 'linear', 'easeIn', 'easeOut', 'easeInOut'
+ *   - Custom: (t: number) => number (t goes from 0 to 1)
+ *   - Example: const myEase = ease((t) => t * t * t)
+ */`;
+// Get code from URL parameter or use default
+function getInitialCode(): string {
+  const params = new URLSearchParams(window.location.search);
+  const codeParam = params.get("code");
+
+  if (codeParam) {
+    try {
+      // Decode base64 string
+      const decoded = atob(codeParam);
+      return decoded;
+    } catch (error) {
+      console.error("Failed to decode code from URL:", error);
+      return defaultCode;
+    }
+  }
+
+  return defaultCode;
+}
+
+// Initialize CodeMirror Editor
+const editor = new EditorView({
+  doc: getInitialCode(),
+  extensions: [basicSetup, javascript(), oneDark],
+  parent: editorContainer,
+});
+
 function delayFrame() {
   return new Promise((resolve) => setTimeout(resolve, 16));
 }
 
 let animation: Generator | null = null;
 let isPlaying = false;
+let customAnimationFunction: ((view: any) => Generator) | null = null;
+let currentVideoBlob: Blob | null = null;
+
+// Show animation canvas, hide video
+function showAnimation() {
+  app.style.display = "block";
+  videoElement.style.display = "none";
+}
+
+// Show video, hide animation canvas
+function showVideo() {
+  app.style.display = "none";
+  videoElement.style.display = "block";
+}
+
+// Compile custom animation from code editor
+function compileCustomAnimation() {
+  try {
+    const code = editor.state.doc.toString();
+    // Create an async function that returns the animation generator
+    // Make animation helpers available in the scope
+    const AsyncFunction = async function () {}.constructor as any;
+    const func = new AsyncFunction(
+      "view",
+      "all",
+      "el",
+      "ease",
+      "sequence",
+      "repeat",
+      "delay",
+      "loop",
+      code,
+    );
+    return func;
+  } catch (error) {
+    console.error("Failed to compile custom animation:", error);
+    alert(
+      `Failed to compile animation: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    return null;
+  }
+}
+
+async function getAnimationFunction() {
+  const compiled = compileCustomAnimation();
+  if (compiled) {
+    try {
+      customAnimationFunction = await compiled(
+        show,
+        all,
+        el,
+        ease,
+        sequence,
+        repeat,
+        delay,
+        loop,
+      );
+      return customAnimationFunction;
+    } catch (error) {
+      console.error("Failed to execute custom animation:", error);
+      alert(
+        `Failed to execute animation: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return playAnimation;
+    }
+  }
+
+  return playAnimation;
+}
 
 async function playToEnd() {
   if (isPlaying) return;
@@ -32,16 +206,32 @@ async function playToEnd() {
   playBtn.disabled = true;
   playBtn.classList.add("active");
 
-  // Reset animation
-  show.clear();
-  animation = playAnimation(show);
+  // Reset video and show animation
+  showAnimation();
+  downloadBtn.classList.remove("show");
 
-  let frame = animation.next();
-  while (!frame.done) {
+  try {
+    // Reset animation
+    show.clear();
+
+    const animFunc = await getAnimationFunction();
+    if (!animFunc) {
+      throw new Error("Failed to get animation function");
+    }
+    animation = animFunc(show);
+
+    let frame = animation.next();
+    while (!frame.done) {
+      await delayFrame();
+      frame = animation.next();
+    }
     await delayFrame();
-    frame = animation.next();
+  } catch (error) {
+    console.error("Animation error:", error);
+    alert(
+      `Animation error: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
-  await delayFrame();
 
   isPlaying = false;
   playBtn.disabled = false;
@@ -49,26 +239,29 @@ async function playToEnd() {
   animation = null;
 }
 
-let currentVideoBlob: Blob | null = null;
-
 async function recordAnimation() {
   if (isPlaying) return;
-
-  const videoElement =
-    document.querySelector<HTMLVideoElement>("#recordedVideo")!;
-  const videoPlaceholder =
-    document.querySelector<HTMLParagraphElement>("#videoPlaceholder")!;
 
   try {
     recordBtn.disabled = true;
     recordBtn.classList.add("active");
     recordBtn.textContent = "Recording...";
 
+    // Show animation during recording
+    showAnimation();
+    downloadBtn.classList.remove("show");
+
     // Clear and prepare for recording
     show.clear();
 
+    // Get the animation function to use
+    const animFunc = await getAnimationFunction();
+    if (!animFunc) {
+      throw new Error("Failed to get animation function");
+    }
+
     // Record the animation
-    const blob = await record(show, playAnimation, {
+    const blob = await record(show, animFunc, {
       fps: 60,
       bitrate: 5_000_000,
     });
@@ -80,11 +273,10 @@ async function recordAnimation() {
     // Store the blob for download
     currentVideoBlob = blob;
 
-    // Display the video
+    // Display the video (replacing the animation)
     const videoUrl = URL.createObjectURL(blob);
     videoElement.src = videoUrl;
-    videoElement.style.display = "block";
-    videoPlaceholder.style.display = "none";
+    showVideo();
     downloadBtn.classList.add("show");
 
     // Clean up the URL when the video is loaded
@@ -101,6 +293,7 @@ async function recordAnimation() {
     );
     recordBtn.textContent = "Record Video";
     recordBtn.classList.remove("active");
+    showAnimation();
   } finally {
     recordBtn.disabled = false;
   }
@@ -123,3 +316,4 @@ downloadBtn.addEventListener("click", downloadVideo);
 
 // Initial state
 recordBtn.textContent = "Record Video";
+showAnimation();

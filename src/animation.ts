@@ -1,13 +1,13 @@
-import { all } from "./anim/ease";
-import { el } from "./anim/elements";
+import { all } from "./anim/gen-animation";
+import { el } from "./anim/element";
 import type { View } from "./anim/view";
 
 export function* playAnimation(view: View) {
-  yield* all([
+  yield* all(
     square(view, 50, 100),
     square(view, 150, 100),
     square(view, 250, 100),
-  ]);
+  );
 }
 
 export function* square(view: View, left: number, top: number) {

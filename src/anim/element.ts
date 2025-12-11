@@ -1,7 +1,7 @@
 import type * as CSS from "csstype";
-import { ease, tween, type EasingFunction } from "./ease";
+import { ease, tween, type EasingFunction } from "./tween";
 import type { View, ViewElement } from "./view";
-import type { NumericProps } from "./props";
+import type { NumericProps } from "./utils";
 import { numberOnly, toCssValue } from "./utils";
 
 export function el(view: View, style?: CSS.Properties): ViewElement {
@@ -19,7 +19,7 @@ export function el(view: View, style?: CSS.Properties): ViewElement {
     to: function* (
       target: Partial<NumericProps>,
       duration: number,
-      easing: EasingFunction | ((t: number) => number) = "linear",
+      easing: EasingFunction | ((t: number) => number) = "easeInOut",
     ) {
       const initial = numberOnly(window.getComputedStyle(element), target);
 

@@ -1,5 +1,5 @@
 import type * as CSS from "csstype";
-import type { EasingFunction } from "./ease";
+import type { EasingFunction } from "./tween";
 import type { NumericProps } from "./utils";
 
 export interface View {

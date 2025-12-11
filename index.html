@@ -10,23 +10,21 @@
         <div id="controls">
             <button id="playBtn">Play to End</button>
             <button id="recordBtn">Record Video</button>
-            <button id="downloadBtn">Download Video</button>
+            <button id="downloadBtn" style="margin-left: auto">Download Video</button>
         </div>
-        <div id="container">
-            <div id="canvas-wrapper">
-                <h3>Animation</h3>
-                <div id="animation"></div>
+        <div id="main-container">
+            <div id="editor-wrapper">
+                <div id="editor"></div>
             </div>
-            <div id="video-wrapper">
-                <h3>Recording</h3>
-                <video
-                    id="recordedVideo"
-                    controls
-                    style="display: none"
-                ></video>
-                <p id="videoPlaceholder">
-                    No recording yet. Click "Record Video" to start.
-                </p>
+            <div id="preview-wrapper">
+                <div id="preview-container">
+                    <div id="app"></div>
+                    <video
+                        id="recordedVideo"
+                        controls
+                        style="display: none"
+                    ></video>
+                </div>
             </div>
         </div>
         <script type="module" src="/src/main.ts"></script>
