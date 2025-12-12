@@ -4,11 +4,16 @@ import { EditorView, basicSetup } from "codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { el, ease, delay, sequence, all, loop } from "./anim/gen-animation";
+import {
+  compressToEncodedURIComponent,
+  decompressFromEncodedURIComponent,
+} from "lz-string";
 import "./style.css";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const playBtn = document.querySelector<HTMLButtonElement>("#playBtn")!;
 const recordBtn = document.querySelector<HTMLButtonElement>("#recordBtn")!;
+const shareBtn = document.querySelector<HTMLButtonElement>("#shareBtn")!;
 const downloadBtn = document.querySelector<HTMLButtonElement>("#downloadBtn")!;
 const editorContainer = document.querySelector<HTMLDivElement>("#editor")!;
 const videoElement =
@@ -99,9 +104,14 @@ function getInitialCode(): string {
 
   if (codeParam) {
     try {
-      // Decode base64 string
-      const decoded = atob(codeParam);
-      return decoded;
+      // Try to decompress with lz-string first
+      const decoded = decompressFromEncodedURIComponent(codeParam);
+      if (decoded) {
+        return decoded;
+      }
+      // Fallback to base64 for backward compatibility
+      const decodedBase64 = atob(codeParam);
+      return decodedBase64;
     } catch (error) {
       console.error("Failed to decode code from URL:", error);
       return defaultCode;
@@ -123,6 +133,7 @@ const previewMode = isPreviewMode();
 if (previewMode) {
   document.body.classList.add("preview-mode");
   recordBtn.style.display = "none";
+  shareBtn.style.display = "none";
   downloadBtn.style.display = "none";
 }
 
@@ -304,8 +315,47 @@ function downloadVideo() {
   URL.revokeObjectURL(url);
 }
 
+function shareAnimation() {
+  try {
+    const code = editor.state.doc.toString();
+
+    // Compress the code using lz-string
+    const compressed = compressToEncodedURIComponent(code);
+
+    // Create the shareable URL
+    const url = new URL(window.location.href);
+    url.searchParams.set("code", compressed);
+
+    // Copy to clipboard
+    navigator.clipboard
+      .writeText(url.toString())
+      .then(() => {
+        // Visual feedback
+        const originalText = shareBtn.textContent;
+        shareBtn.textContent = "Copied!";
+        shareBtn.classList.add("active");
+
+        setTimeout(() => {
+          shareBtn.textContent = originalText;
+          shareBtn.classList.remove("active");
+        }, 2000);
+      })
+      .catch((error) => {
+        console.error("Failed to copy to clipboard:", error);
+        // Fallback: show the URL in a prompt
+        prompt("Copy this URL to share your animation:", url.toString());
+      });
+  } catch (error) {
+    console.error("Failed to create share URL:", error);
+    alert(
+      `Failed to create share URL: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
 playBtn.addEventListener("click", playToEnd);
 recordBtn.addEventListener("click", recordAnimation);
+shareBtn.addEventListener("click", shareAnimation);
 downloadBtn.addEventListener("click", downloadVideo);
 
 // Initial state

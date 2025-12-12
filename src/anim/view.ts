@@ -9,7 +9,7 @@ export interface View {
   add(data: { element: ViewElement }): void;
   remove(data: { element: ViewElement }): void;
 }
-
+  
 export interface ViewElement extends Disposable {
   element: HTMLElement;
   style: (p: CSS.Properties) => void;

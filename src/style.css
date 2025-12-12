@@ -213,6 +213,7 @@ button:focus-visible {
     outline: 4px auto -webkit-focus-ring-color;
 }
 
+
 /* Preview mode styles */
 body.preview-mode {
     overflow: hidden;
@@ -260,6 +261,17 @@ body.preview-mode #preview-wrapper {
     }
     button.active {
         background-color: var(--accent);
+        color: white;
+    }
+    #shareBtn {
+        background-color: #e8f5e9;
+        color: #2a5a2a;
+    }
+    #shareBtn:hover:not(:disabled) {
+        background-color: #c8e6c9;
+    }
+    #shareBtn.active {
+        background-color: #4a9a4a;
         color: white;
     }
 }

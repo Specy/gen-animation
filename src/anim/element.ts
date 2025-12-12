@@ -35,7 +35,7 @@ export function el(view: View, style?: CSS.Properties): ViewElement {
       element.remove();
     },
   };
-  view.add({ element: viewElement as any });
+  view.add({ element: viewElement });
 
   return viewElement;
 }

@@ -39,19 +39,3 @@ export function* tween(
     yield newState;
   }
 }
-
-export function* linear(
-  from: State,
-  to: State,
-  duration: number,
-): Generator<State> {
-  yield* tween(from, to, duration, (t) => t);
-}
-
-export function* easeOut(
-  from: State,
-  to: State,
-  duration: number,
-): Generator<State> {
-  yield* tween(from, to, duration, (t) => t * (2 - t));
-}
