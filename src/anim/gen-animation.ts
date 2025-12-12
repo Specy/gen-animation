@@ -28,7 +28,7 @@ export function* loop(
 
 export function* sequence(
   delayFrames: number,
-  generators: (() => Generator<any>)[],
+  ...generators: Generator<any>[]
 ): Generator<any[]> {
   const activeGens: (Generator<any> | null)[] = [];
   const pendingGens = [...generators];
@@ -37,7 +37,7 @@ export function* sequence(
   while (activeGens.some((g) => g !== null) || pendingGens.length > 0) {
     // Start a new generator every delayFrames
     if (frameCount % delayFrames === 0 && pendingGens.length > 0) {
-      activeGens.push(pendingGens.shift()!());
+      activeGens.push(pendingGens.shift()!);
     }
 
     // Step all active generators

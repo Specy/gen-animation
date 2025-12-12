@@ -73,7 +73,7 @@ function* animateSquare(view, left, top, color) {
  *
  * sequence(delayFrames, generators) - Runs animations with a staggered delay
  *   - Starts each animation after delayFrames
- *   - Example: yield* sequence(10, [anim1, () => anim2(100), anim3])
+ *   - Example: yield* sequence(10, anim1(), anim2(100), anim3())
  *
  * delay(frames) - Pauses the animation for a number of frames
  *   - Example: yield* delay(30)
