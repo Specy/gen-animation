@@ -270,8 +270,8 @@ body.autoplay-mode #app {
 
 @media (max-width: 768px) {
     button {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
     }
     #main-container {
         flex-direction: column;
