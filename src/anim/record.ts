@@ -14,7 +14,15 @@ export async function record(
   const frameDuration = 1_000_000 / fps; // in microseconds
 
   // Capture the initial frame to get dimensions
-  const initialCanvas = await html2canvas(view.element);
+  const initialCanvas = await html2canvas(
+    view.element, {
+      scale: 1,
+      useCORS: true,
+      logging: false,
+      allowTaint: true,
+      width: view.element.offsetWidth,
+      height: view.element.offsetHeight,
+    });
   const width = initialCanvas.width;
   const height = initialCanvas.height;
 
