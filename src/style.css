@@ -152,17 +152,6 @@ h1 {
     pointer-events: auto;
 }
 
-@media (max-width: 768px) {
-    #main-container {
-        flex-direction: column;
-    }
-
-    #editor-wrapper {
-        border-bottom: 2px solid var(--accent);
-        max-height: 50vh;
-    }
-}
-
 .logo {
     height: 6em;
     padding: 1.5em;
@@ -279,30 +268,24 @@ body.autoplay-mode #app {
     height: 100vh;
 }
 
-@media (prefers-color-scheme: light) {
-    :root {
-        color: #213547;
-        background-color: #ffffff;
-    }
-    a:hover {
-        color: #747bff;
-    }
+@media (max-width: 768px) {
     button {
-        background-color: #f9f9f9;
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
     }
-    button.active {
-        background-color: var(--accent);
-        color: white;
+    #main-container {
+        flex-direction: column;
     }
-    #shareBtn {
-        background-color: #e8f5e9;
-        color: #2a5a2a;
+
+    #editor-wrapper {
+        border-bottom: 2px solid var(--accent);
+        max-height: 50vh;
     }
-    #shareBtn:hover:not(:disabled) {
-        background-color: #c8e6c9;
+    
+    #controls{
+        justify-content: flex-start;
     }
-    #shareBtn.active {
-        background-color: #4a9a4a;
-        color: white;
+    #downloadBtn {
+        display: none;
     }
 }
