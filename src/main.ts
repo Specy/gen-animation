@@ -97,6 +97,12 @@ function isPreviewMode(): boolean {
   return params.get("preview") === "true";
 }
 
+// Check if autoplay mode is enabled
+function isAutoplayMode(): boolean {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("autoplay") === "true";
+}
+
 // Get code from URL parameter or use default
 function getInitialCode(): string {
   const params = new URLSearchParams(window.location.search);
@@ -130,11 +136,20 @@ const editor = new EditorView({
 
 // Apply preview mode if enabled
 const previewMode = isPreviewMode();
+const autoplayMode = isAutoplayMode();
+
 if (previewMode) {
   document.body.classList.add("preview-mode");
   recordBtn.style.display = "none";
   shareBtn.style.display = "none";
   downloadBtn.style.display = "none";
+}
+
+if (autoplayMode) {
+  document.body.classList.add("autoplay-mode");
+  // Hide all controls in autoplay mode
+  const controls = document.querySelector<HTMLDivElement>("#controls")!;
+  controls.style.display = "none";
 }
 
 function delayFrame() {
@@ -204,12 +219,14 @@ async function getAnimationFunction(): Promise<
   return null;
 }
 
-async function playToEnd() {
-  if (isPlaying) return;
+async function playToEnd(shouldLoop = false) {
+  if (isPlaying && !shouldLoop) return;
 
   isPlaying = true;
-  playBtn.disabled = true;
-  playBtn.classList.add("active");
+  if (!autoplayMode) {
+    playBtn.disabled = true;
+    playBtn.classList.add("active");
+  }
 
   // Reset video and show animation
   showAnimation();
@@ -231,16 +248,33 @@ async function playToEnd() {
       frame = animation.next();
     }
     await delayFrame();
+
+    // If in autoplay mode, loop the animation
+    if (shouldLoop) {
+      isPlaying = false;
+      setTimeout(() => playToEnd(true), 100);
+      return;
+    }
   } catch (error) {
     console.error("Animation error:", error);
-    alert(
-      `Animation error: ${error instanceof Error ? error.message : String(error)}`,
-    );
+    if (!autoplayMode) {
+      alert(
+        `Animation error: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    // Retry in autoplay mode even on error
+    if (shouldLoop) {
+      isPlaying = false;
+      setTimeout(() => playToEnd(true), 1000);
+      return;
+    }
   }
 
   isPlaying = false;
-  playBtn.disabled = false;
-  playBtn.classList.remove("active");
+  if (!autoplayMode) {
+    playBtn.disabled = false;
+    playBtn.classList.remove("active");
+  }
   animation = null;
 }
 
@@ -353,7 +387,7 @@ function shareAnimation() {
   }
 }
 
-playBtn.addEventListener("click", playToEnd);
+playBtn.addEventListener("click", () => playToEnd(false));
 recordBtn.addEventListener("click", recordAnimation);
 shareBtn.addEventListener("click", shareAnimation);
 downloadBtn.addEventListener("click", downloadVideo);
@@ -361,3 +395,8 @@ downloadBtn.addEventListener("click", downloadVideo);
 // Initial state
 recordBtn.textContent = "Record Video";
 showAnimation();
+
+// Start autoplay if enabled
+if (autoplayMode) {
+  playToEnd(true);
+}
