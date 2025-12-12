@@ -74,7 +74,14 @@ export async function record(
 
   // Encode each animation frame
   for (const _ of animation(view)) {
-    const canvas = await html2canvas(view.element);
+    const canvas = await html2canvas(view.element, {
+      scale: 1,
+      useCORS: true,
+      logging: false,
+      allowTaint: true,
+      width: view.element.offsetWidth,
+      height: view.element.offsetHeight,
+    });
     await encodeFrame(canvas);
   }
 
