@@ -1,5 +1,5 @@
 import { el } from "./element";
-import { ease } from './tween'
+import { ease } from "./tween";
 
 export function* delay(frames: number): Generator<void> {
   for (let i = 0; i < frames; i++) {
@@ -7,23 +7,28 @@ export function* delay(frames: number): Generator<void> {
   }
 }
 
-export function* repeat(
+export function* all(...gens: Generator<any>[]): Generator<any[]> {
+  while (true) {
+    const results = gens.map((g) => g.next());
+    if (results.every((r) => r.done)) {
+      return;
+    }
+    yield results.map((r) => r.value);
+  }
+}
+
+export function* loop(
   times: number,
   generator: () => Generator<any>,
 ): Generator<any> {
   for (let i = 0; i < times; i++) {
-    const gen = generator();
-    let result = gen.next();
-    while (!result.done) {
-      yield result.value;
-      result = gen.next();
-    }
+    yield* generator();
   }
 }
 
 export function* sequence(
   delayFrames: number,
-  generators: (() => Generator<any>)[]
+  generators: (() => Generator<any>)[],
 ): Generator<any[]> {
   const activeGens: (Generator<any> | null)[] = [];
   const pendingGens = [...generators];
@@ -51,31 +56,4 @@ export function* sequence(
   }
 }
 
-export function* all(...gens: Generator<any>[]): Generator<any[]> {
-  while (true) {
-    const results = gens.map((g) => g.next());
-    if (results.every((r) => r.done)) {
-      return;
-    }
-    yield results.map((r) => r.value);
-  }
-}
-
-export function* loop(
-  times: number,
-  generator: () => Generator<any>,
-): Generator<any> {
-  for (let i = 0; i < times; i++) {
-    const gen = generator();
-    let result = gen.next();
-    while (!result.done) {
-      yield result.value;
-      result = gen.next();
-    }
-  }
-}
-
-export {
-  el,
-  ease
-}
+export { el, ease };

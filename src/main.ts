@@ -1,18 +1,9 @@
-import { view } from "./anim/view";
+import { view, type View } from "./anim/view";
 import { record } from "./anim/record";
-import { playAnimation } from "./animation";
 import { EditorView, basicSetup } from "codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { oneDark } from "@codemirror/theme-one-dark";
-import {
-  el,
-  ease,
-  delay,
-  repeat,
-  sequence,
-  all,
-  loop,
-} from "./anim/gen-animation";
+import { el, ease, delay, sequence, all, loop } from "./anim/gen-animation";
 import "./style.css";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -34,7 +25,7 @@ const show = view({
 show.mount(app);
 
 // Default example code
-const defaultCode = `// Animation helpers are available: all, el, ease, sequence, repeat, delay, loop. 
+const defaultCode = `// Animation helpers are available: all, el, ease, sequence, repeat, delay, loop.
 // Look below the code for docs, the animation function is the one that will be played.
 
 return function* animation(view) {
@@ -70,7 +61,7 @@ function* animateSquare(view, left, top, color) {
  *   - Example: using box = el(view, { width: "50px", backgroundColor: "red" })
  *
  * element.to(props, duration, easing) - Animates element properties
- *   Props values must be numbers like: { left: 100, width: 20 } 
+ *   Props values must be numbers like: { left: 100, width: 20 }
  *   - props: { left, top, width, height, rotate, opacity, etc. }
  *   - duration: number of frames
  *   - easing: 'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | custom function
@@ -87,10 +78,7 @@ function* animateSquare(view, left, top, color) {
  * delay(frames) - Pauses the animation for a number of frames
  *   - Example: yield* delay(30)
  *
- * repeat(times, generator) - Repeats an animation a specific number of times
- *   - Example: yield* repeat(3, () => bounceAnimation())
- *
- * loop(times, generator) - Same as repeat (alias)
+ * loop(times, generator) - Repeats an animation a specific number of times
  *   - Example: yield* loop(5, () => spinAnimation())
  *
  * ease(easingFunction) - Returns an easing function
@@ -130,7 +118,6 @@ function delayFrame() {
 
 let animation: Generator | null = null;
 let isPlaying = false;
-let customAnimationFunction: ((view: any) => Generator) | null = null;
 let currentVideoBlob: Blob | null = null;
 
 // Show animation canvas, hide video
@@ -146,24 +133,24 @@ function showVideo() {
 }
 
 // Compile custom animation from code editor
-function compileCustomAnimation() {
+function compileCustomAnimation():
+  | ((...args: unknown[]) => Promise<(view: View) => Generator>)
+  | null {
   try {
     const code = editor.state.doc.toString();
     // Create an async function that returns the animation generator
     // Make animation helpers available in the scope
     const AsyncFunction = async function () {}.constructor as any;
-    const func = new AsyncFunction(
+    return new AsyncFunction(
       "view",
       "all",
       "el",
       "ease",
       "sequence",
-      "repeat",
       "delay",
       "loop",
       code,
     );
-    return func;
   } catch (error) {
     console.error("Failed to compile custom animation:", error);
     alert(
@@ -173,31 +160,23 @@ function compileCustomAnimation() {
   }
 }
 
-async function getAnimationFunction() {
+async function getAnimationFunction(): Promise<
+  ((view: View) => Generator) | null
+> {
   const compiled = compileCustomAnimation();
   if (compiled) {
     try {
-      customAnimationFunction = await compiled(
-        show,
-        all,
-        el,
-        ease,
-        sequence,
-        repeat,
-        delay,
-        loop,
-      );
-      return customAnimationFunction;
+      return await compiled(show, all, el, ease, sequence, delay, loop);
     } catch (error) {
       console.error("Failed to execute custom animation:", error);
       alert(
         `Failed to execute animation: ${error instanceof Error ? error.message : String(error)}`,
       );
-      return playAnimation;
+      return null;
     }
   }
 
-  return playAnimation;
+  return null;
 }
 
 async function playToEnd() {
