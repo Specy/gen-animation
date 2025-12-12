@@ -86,6 +86,12 @@ function* animateSquare(view, left, top, color) {
  *   - Custom: (t: number) => number (t goes from 0 to 1)
  *   - Example: const myEase = ease((t) => t * t * t)
  */`;
+// Check if preview mode is enabled
+function isPreviewMode(): boolean {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("preview") === "true";
+}
+
 // Get code from URL parameter or use default
 function getInitialCode(): string {
   const params = new URLSearchParams(window.location.search);
@@ -111,6 +117,14 @@ const editor = new EditorView({
   extensions: [basicSetup, javascript(), oneDark],
   parent: editorContainer,
 });
+
+// Apply preview mode if enabled
+const previewMode = isPreviewMode();
+if (previewMode) {
+  document.body.classList.add("preview-mode");
+  recordBtn.style.display = "none";
+  downloadBtn.style.display = "none";
+}
 
 function delayFrame() {
   return new Promise((resolve) => setTimeout(resolve, 16));
