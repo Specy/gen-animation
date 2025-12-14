@@ -18,6 +18,11 @@ const downloadBtn = document.querySelector<HTMLButtonElement>("#downloadBtn")!;
 const editorContainer = document.querySelector<HTMLDivElement>("#editor")!;
 const videoElement =
   document.querySelector<HTMLVideoElement>("#recordedVideo")!;
+const errorOverlay = document.querySelector<HTMLDivElement>("#error-overlay")!;
+const errorMessage =
+  document.querySelector<HTMLParagraphElement>("#error-message")!;
+const errorCloseBtn =
+  document.querySelector<HTMLButtonElement>("#error-close")!;
 
 const show = view({
   position: "relative",
@@ -160,6 +165,23 @@ let animation: Generator | null = null;
 let isPlaying = false;
 let currentVideoBlob: Blob | null = null;
 
+// Error notification system
+function showError(message: string) {
+  errorMessage.textContent = message;
+  errorOverlay.classList.add("show");
+}
+
+function hideError() {
+  errorOverlay.classList.remove("show");
+}
+
+errorCloseBtn.addEventListener("click", hideError);
+errorOverlay.addEventListener("click", (e) => {
+  if (e.target === errorOverlay) {
+    hideError();
+  }
+});
+
 // Show animation canvas, hide video
 function showAnimation() {
   app.style.display = "block";
@@ -193,7 +215,7 @@ function compileCustomAnimation():
     );
   } catch (error) {
     console.error("Failed to compile custom animation:", error);
-    alert(
+    showError(
       `Failed to compile animation: ${error instanceof Error ? error.message : String(error)}`,
     );
     return null;
@@ -209,7 +231,7 @@ async function getAnimationFunction(): Promise<
       return await compiled(show, all, el, ease, sequence, delay, loop);
     } catch (error) {
       console.error("Failed to execute custom animation:", error);
-      alert(
+      showError(
         `Failed to execute animation: ${error instanceof Error ? error.message : String(error)}`,
       );
       return null;
@@ -227,6 +249,9 @@ async function playToEnd(shouldLoop = false) {
     playBtn.disabled = true;
     playBtn.classList.add("active");
   }
+
+  // Hide error notification
+  hideError();
 
   // Reset video and show animation
   showAnimation();
@@ -258,7 +283,7 @@ async function playToEnd(shouldLoop = false) {
   } catch (error) {
     console.error("Animation error:", error);
     if (!autoplayMode) {
-      alert(
+      showError(
         `Animation error: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
@@ -285,6 +310,9 @@ async function recordAnimation() {
     recordBtn.disabled = true;
     recordBtn.classList.add("active");
     recordBtn.textContent = "Recording...";
+
+    // Hide error notification
+    hideError();
 
     // Show animation during recording
     showAnimation();
@@ -327,7 +355,7 @@ async function recordAnimation() {
     recordBtn.classList.remove("active");
   } catch (error) {
     console.error("Recording failed:", error);
-    alert(
+    showError(
       `Recording failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     recordBtn.textContent = "Record Video";
@@ -381,7 +409,7 @@ function shareAnimation() {
       });
   } catch (error) {
     console.error("Failed to create share URL:", error);
-    alert(
+    showError(
       `Failed to create share URL: ${error instanceof Error ? error.message : String(error)}`,
     );
   }

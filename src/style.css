@@ -268,6 +268,93 @@ body.autoplay-mode #app {
     height: 100vh;
 }
 
+/* Error notification styles */
+#error-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 2rem;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+#error-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#error-notification {
+    background-color: #2d1f1f;
+    border: 2px solid #ff4444;
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(255, 68, 68, 0.3);
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+#error-notification h3 {
+    color: #ff6666;
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#error-notification h3::before {
+    content: "⚠";
+    font-size: 1.5rem;
+}
+
+#error-message {
+    color: #ffffff;
+    margin: 0 0 1.5rem 0;
+    line-height: 1.6;
+    font-family: "Courier New", monospace;
+    word-break: break-word;
+}
+
+#error-close {
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+    transition: background-color 0.2s;
+}
+
+#error-close:hover {
+    background-color: #ff6666;
+}
+
 @media (max-width: 768px) {
     button {
         font-size: 0.9rem;
@@ -281,11 +368,16 @@ body.autoplay-mode #app {
         border-bottom: 2px solid var(--accent);
         max-height: 50vh;
     }
-    
-    #controls{
+
+    #controls {
         justify-content: flex-start;
     }
     #downloadBtn {
         display: none;
+    }
+
+    #error-notification {
+        max-width: 95%;
+        padding: 1rem;
     }
 }
